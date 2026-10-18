@@ -1,6 +1,8 @@
 # blinddate prototype
 
-A responsive, interactive prototype of a personality-first blind dating service. Warm cream, coral, and plum styling; card-based introductions; a persistent desktop sidebar and mobile bottom navigation.
+A responsive, interactive prototype of a personality-first blind dating service. A focused introduction card, clear magenta actions, neutral surfaces and abstract lilac artwork; familiar Discover / Dates / Profile / Membership navigation.
+
+The second design applies all twenty principles in the supplied reference image. [UX-PRINCIPLES.md](UX-PRINCIPLES.md) maps every principle, in order, to concrete changes and verification steps. The bias/dark-pattern category is used to prevent manipulative behavior.
 
 ## Run locally
 
@@ -21,10 +23,10 @@ node verify.mjs
 
 ## Interactive flows
 
-- Three-step private profile setup: identity, intentions, interests, values, diet, optional politics, age preferences, smoking preference, and travel radius. No height questions.
+- Three-step private profile setup: identity, intentions, interests, values, diet, optional politics, age preferences, smoking preference, and travel radius. No height questions. Draft answers and the current step are saved automatically; invalid input gets field-level feedback.
 - Local sample matching filters age, desired gender, distance, smoking, and relationship intention, then ranks shared interests and values. The fixture people accept all genders. Political compatibility, routing, verification, and real candidate eligibility are not implemented.
 - Introduction explanation, decline, and a different sample introduction.
-- Five fictional restaurant/café options; dietary and budget filters; date and time selection; explicit simulated confirmation.
+- Five fictional restaurant/café options, initially showing three to reduce choice overload; dietary and budget filters; a suggested editable venue/time; explicit simulated confirmation. Planning drafts persist, but consent is never restored automatically.
 - Date details, live countdown, copying an itinerary, rescheduling, cancellation, and safety/emergency exceptions. Vancouver scheduling handles daylight saving changes, and the cancellation cutoff is exactly 24 elapsed hours before the date.
 - C$29.99 monthly / C$299.99 annual membership previews. No checkout.
 - Safety information and a report preview that does not transmit or save report contents.

@@ -205,6 +205,11 @@ vm.runInContext(source+`
   navigate('membership');assert.equal(state.view,'home');assert.equal(tabRoot.innerHTML,'');
   handleAction('membership',{dataset:{}});assert.equal(state.view,'home');
   state.profile=clone(profile);modal=null;render();assert.match(tabRoot.innerHTML,/Main navigation/);
+  for(const view of ['home','dates','availability','profile']){navigate(view);assert.match(tabRoot.innerHTML,/Main navigation/,'Each tab renders for a new completed account');}
+  assert.equal(pastDatesList(),'','Empty date history renders safely');
+  state.pastDates=[{matchId:'021',outcome:'revealed',stars:5}];assert.match(pastDatesList(),/Mutual yes/);
+  state.pastDates=[{matchId:'021',outcome:'no-show'}];assert.match(pastDatesList(),/reported locally/);
+  state.pastDates=[];
   const legacyDocument=localStorage.getItem(storageKey);
   activateAccount({id:'account-a',email:'a@example.test'});
   assert.equal(state.profile.complete,false,'New accounts do not inherit a previous local profile');

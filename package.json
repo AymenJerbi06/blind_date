@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "node server.mjs",
     "start": "node server.mjs",
-    "check": "node scripts/check.mjs"
+    "check": "node scripts/check.mjs",
+    "supabase:check": "node scripts/check-supabase.mjs"
   }
 }

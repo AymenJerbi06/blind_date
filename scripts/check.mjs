@@ -10,3 +10,5 @@ await import('../verify.mjs');
 await import('../verify-architecture.mjs');
 await import('../verify-media.mjs');
 await import('../verify-motion.mjs');
+await import('../verify-supabase.mjs');
+await import('../verify-auth.mjs');

@@ -8,10 +8,11 @@ class TestDate extends Date{constructor(...args){super(...(args.length?args:[clo
 const store=new Map();let storageFailure=false;
 const element=()=>({innerHTML:'',style:{},contains(){return false;},querySelector(){return null;},querySelectorAll(){return[];},addEventListener(){}});
 const app=element(),modalRoot=element(),tabRoot=element();
-const context=vm.createContext({Date:TestDate,Intl,structuredClone,assert,console,setClock:value=>clock=Date.parse(value),setStorageFailure:value=>storageFailure=value,localStorage:{getItem:key=>store.get(key),setItem:(key,value)=>{if(storageFailure)throw new Error('quota');store.set(key,value);},removeItem:key=>store.delete(key)},document:{documentElement:{dataset:{}},body:{style:{}},querySelector:selector=>({'#app':app,'#modal-root':modalRoot,'#tab-root':tabRoot}[selector]||null),getElementById(){return null;},addEventListener(){}},window:{addEventListener(){},scrollTo(){}},setInterval(){},setTimeout(){},clearTimeout(){}});
+const context=vm.createContext({Date:TestDate,Intl,structuredClone,assert,console,setClock:value=>clock=Date.parse(value),setStorageFailure:value=>storageFailure=value,localStorage:{getItem:key=>store.get(key),setItem:(key,value)=>{if(storageFailure)throw new Error('quota');store.set(key,value);},removeItem:key=>store.delete(key)},document:{documentElement:{dataset:{}},body:{style:{},dataset:{}},querySelector:selector=>({'#app':app,'#modal-root':modalRoot,'#tab-root':tabRoot}[selector]||null),getElementById(){return null;},addEventListener(){}},window:{addEventListener(){},scrollTo(){}},setInterval(){},setTimeout(){},clearTimeout(){}});
 const source=(await Promise.all((await runtimeFiles()).map(file=>readFile(file,'utf8')))).join('\n');
 const literalIcons=[...new Set([...source.matchAll(/\bicon\(['"]([^'"]+)['"]/g)].map(match=>match[1]))];
 vm.runInContext(source+`
+  account={loading:false,user:{id:'test-user',email:'sample@example.test'},screen:'welcome',email:'',error:'',busy:false};
   for(const name of ${JSON.stringify(literalIcons)}) assert.ok(icons[name], 'Missing bundled icon: '+name);
   const profile=Dating.normalizeProfile({...Dating.defaultProfile(),schema:2,name:'María-José',age:25,gender:'Man',education:'Bachelor’s degree',energy:'Somewhere in between',activity:'Active',pets:'Love animals',selfSmoking:'Non-smoker',ownPolitics:'Progressive / left',interests:['Outdoors','Animals'],values:['Kindness','Curiosity'],billPreferences:['own','cover'],languages:['English','French'],drinking:'Socially',workout:'Often',familyPlans:'Want children',height:180,photos:['data:image/jpeg;base64,AAAA'],complete:true});
   assert.equal(Dating.firstProfileError({...profile,photos:[]}).step,0,'At least one photo is required');
@@ -189,6 +190,35 @@ vm.runInContext(source+`
   assert.equal(state,beforeFailedCommit,'A failed transition keeps the previous in-memory state');
   assert.equal(localStorage.getItem(storageKey),storedBeforeFailure,'A failed transition keeps the previous saved state');
   setStorageFailure(false);
+  // Newcomers and incomplete accounts never get the app shell or its controls.
+  account={loading:false,user:null,screen:'welcome',email:'',error:'',busy:false};
+  state.profile=clone(profile);render();
+  assert.equal(tabRoot.innerHTML,'');assert.match(app.innerHTML,/Meet the person/);
+  assert.ok(!app.innerHTML.includes('data-action="notifications"'));
+  assert.ok(!app.innerHTML.includes('data-action="open-profile"'));
+  navigate('dates');assert.equal(tabRoot.innerHTML,'','Direct navigation cannot bypass account access');
+  account.user={id:'gate-test',email:'sample@example.test'};state=defaultState();modal=null;render();
+  assert.equal(modal.required,true);assert.equal(tabRoot.innerHTML,'');
+  assert.match(modalRoot.innerHTML,/Your private profile/);
+  assert.ok(!modalRoot.innerHTML.includes('Save & close'));
+  closeModal();assert.equal(modal.required,true,'Escape/close cannot reveal app navigation');
+  navigate('membership');assert.equal(state.view,'home');assert.equal(tabRoot.innerHTML,'');
+  handleAction('membership',{dataset:{}});assert.equal(state.view,'home');
+  state.profile=clone(profile);modal=null;render();assert.match(tabRoot.innerHTML,/Main navigation/);
+  const legacyDocument=localStorage.getItem(storageKey);
+  activateAccount({id:'account-a',email:'a@example.test'});
+  assert.equal(state.profile.complete,false,'New accounts do not inherit a previous local profile');
+  state.drafts.profile={step:0,draft:{...Dating.defaultProfile(),name:'Alex'}};save();
+  activateAccount({id:'account-b',email:'b@example.test'});assert.equal(state.drafts.profile,null);
+  activateAccount({id:'account-a',email:'a@example.test'});assert.equal(state.drafts.profile.draft.name,'Alex','Each account resumes only its own draft');
+  assert.equal(localStorage.getItem(storageKey),legacyDocument,'Earlier demo data is preserved separately');
+  assert.notEqual(EntryFlow.keyForUser(storageKey,'a'),EntryFlow.keyForUser(storageKey,'b'));
+  assert.throws(()=>EntryFlow.keyForUser(storageKey,'../other'));
+  assert.equal(EntryFlow.stage({loading:true,user:null},profile),'loading');
+  assert.equal(EntryFlow.allows('loading','navigate'),false);
+  assert.equal(EntryFlow.allows('guest','onboarding-next'),false);
+  assert.equal(EntryFlow.credentialError(' a@example.test ','12345678',true),'');
+  assert.ok(EntryFlow.credentialError('a@example.test','short',true));
   const S=PremiumMotion.sample;
   for(const z of [.2,.58,.99999,1,1.00001,1.5]){const a=S(3,2,10,.12,.45,z),b=S(3,2,10,.120001,.45,z);assert.ok(Math.abs((b.value-a.value)/.000001-a.velocity)<.002);const composed=S(a.value,a.velocity,10,.07,.45,z),whole=S(3,2,10,.19,.45,z);assert.ok(Math.abs(composed.value-whole.value)<1e-7);}
   for(const z of [.9999999,1.0000001])assert.ok(Math.abs(S(3,2,10,.12,.45,z).value-S(3,2,10,.12,.45,1).value)<1e-5);

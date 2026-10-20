@@ -1,5 +1,11 @@
 # Profile, introduction and date agreement model
 
+## Entry and account gate
+
+Concept only → Create account / Log in → email confirmation when required → private five-step profile → Preferences with four tabs. `dist/entry-flow.js` centralizes stage/action policy. An incomplete signed-in account has only full-page profile creation: no tabs, bell, avatar or app navigation. Escape, direct navigation and unrelated action dispatch cannot bypass this gate. Completing the validated profile reveals the app; completed returning accounts open Preferences directly.
+
+`server/auth.mjs` uses Supabase Auth, server-held provider tokens, opaque HttpOnly cookies and a PKCE email callback. `dist/auth-client.js` calls only same-origin routes. Account-specific local namespaces keep drafts/photos/dates separate; old unowned demo data is preserved without automatic assignment. Local profile/date models are still browser data, not server-authoritative records. Sessions currently end on server restart. See README for origin and email redirect configuration.
+
 Implemented locally in `dist/dating-model.js` (pure validation and matching) and `dist/date-lifecycle.js` (date transitions), `dist/app-state.js` (hydration), `dist/local-repository.js` (local adapter), `dist/ui/` (renderers), and `dist/app.js` (coordination). `dist/core.js` holds the fictional people and venue fixtures. This is a reviewable prototype model, not a connected backend.
 
 ## Separate records

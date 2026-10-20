@@ -2,7 +2,7 @@
 
 A personality-first blind dating prototype with the approved romance/mystery identity: ivory, raspberry, peach, lilac and an optional plum theme. Faces stay hidden. The home experience is a swipe-style deck about the person you would like to meet, after completing your own private profile.
 
-Four persistent tabs: **Preferences / Dates / Availability / Profile**. There is no separate Matches tab. An introduction stays inside the Preferences flow until both people agree on one exact plan; confirmed dates live in Dates. Only one active date is supported in this prototype.
+Newcomers see only the concept and **Create account / Log in**. Supabase account access precedes the full-page, five-step private profile. During profile creation there are no app tabs, bell, avatar or unrelated destinations. After completion, four persistent tabs appear: **Preferences / Dates / Availability / Profile**. There is no separate Matches tab. An introduction stays inside the Preferences flow until both people agree on one exact plan; confirmed dates live in Dates. Only one active date is supported in this prototype.
 
 This is a **demo with simulated services**; publishing its source does not deploy a live service. The supplied iOS skill informs shapes, icons, touch targets, sheets and spring motion; the user's approved dating identity overrides its literal finance-dashboard example. [ARCHITECTURE-REVIEW.md](ARCHITECTURE-REVIEW.md) records the latest structural review, fixes and next steps. [FLOW-MODEL.md](FLOW-MODEL.md) documents the data and agreement rules. [UX-PRINCIPLES.md](UX-PRINCIPLES.md) records the law-by-law review and verification limits. [ASSET-NOTES.md](ASSET-NOTES.md) records artwork and provenance.
 
@@ -14,7 +14,7 @@ Requires Node.js 18 or later. No dependency installation is needed.
 npm run dev
 ```
 
-Open http://localhost:4173. To check the JavaScript and domain behavior:
+Open http://127.0.0.1:4173. To check the JavaScript and domain behavior:
 
 ```sh
 npm run check
@@ -22,6 +22,25 @@ node verify.mjs
 ```
 
 `dist/` is the complete static application. Models, state hydration, persistence, image processing and feature renderers are separate; see the architecture review for responsibilities. Schema v3 migrates earlier local data without dropping valid photos or dates. `server.mjs` is a small local preview server; it is not a production backend.
+
+## Supabase connection
+
+The Node server can make an authenticated, read-only connection check to your Supabase project's Data API. It loads `.env`, then `.env.local`; existing process environment variables take precedence. Copy `.env.example` to `.env.local` and set:
+
+- `SUPABASE_URL`: your Project URL, such as `https://YOUR-PROJECT.supabase.co`, from the project's Connect dialog.
+- `SUPABASE_SECRET_KEY`: a server-only secret key. Environment files are ignored by Git. Never place this key in `dist/`, browser code, screenshots or a commit.
+
+Run `npm run supabase:check` to verify the actual connection. After starting/restarting `npm run dev`, `GET /api/health/supabase` reports `connected`, a fixed error code, or missing variable names. It never returns the key, database schema or records. Probes are cached briefly, redirected requests are blocked, and only the configured project's official HTTPS endpoint is allowed. A custom Supabase domain needs explicit validation support before use.
+
+The server also provides **Supabase email/password account access**. Provider tokens stay in server memory; the browser receives an opaque HttpOnly, SameSite session cookie. Account requests validate their origin, bound body size and attempts, and return fixed errors. Signup honors email confirmation, using PKCE and a one-use callback verifier. It never uses admin create-user or bypasses email confirmation.
+
+In **Supabase → Authentication → URL Configuration**, allow `http://127.0.0.1:4173/auth/callback` and set the Site URL to the app origin. If using `localhost`, allow `http://localhost:4173/auth/callback` too. Set `APP_ORIGIN` to the exact public HTTPS origin when using a Node host. Development accepts both loopback aliases on its own port; other origins stay blocked. The Data API health check does not verify email delivery or the redirect allowlist.
+
+Sessions are memory-only: restarting the server requires logging in again. Each Supabase user gets a separate browser-local profile/draft/date namespace. Logging out preserves that user's drafts and removes the app shell. Old unowned demo data is retained separately and is never silently assigned to a newly created account.
+
+This is **not a data migration**: profiles, photos, preferences, sample people, dates and entitlements still use the local demo model. Durable sessions, production abuse protection, account recovery, tables/RLS, protected photo storage and consent-bound server operations still need implementation. Browser namespaces prevent accidental account mixing; they are not encrypted storage or a boundary against someone controlling the browser. The health endpoint is a diagnostic, not a database proxy.
+
+The connection code requires a Node server. Deploying only `dist/` to static hosting does not run it. Put server environment variables in the server host's secret settings when deploying; publishing the source does not transfer local credentials. Official reference: [Supabase API keys](https://supabase.com/docs/guides/getting-started/api-keys).
 
 ## Interactive flows
 
@@ -74,7 +93,7 @@ Profile also contains theme, membership previews (C$29.99 monthly / C$299.99 ann
 
 ## Prototype boundaries
 
-This is a frontend prototype, not a live dating service. There is no authentication, server database, real matching pool, person-to-person delivery, push notifications, reservation, payment processing, verification, live venue data, geocoding/routing, neighborhood-safety score, or monitored support. All partner replies, people, venues, ratings and availability are fictional sample data. The proposed first-introduction fee is C$0; meals/drinks are separate. No actual subscription or cancellation fee is charged.
+This prototype has Supabase account access, but profiles and dates have no server database yet. There is no real matching pool, person-to-person delivery, push notifications, reservation, payment processing, verification, live venue data, geocoding/routing, neighborhood-safety score, or monitored support. All partner replies, people, venues, ratings and availability are fictional sample data. The proposed first-introduction fee is C$0; meals/drinks are separate. No actual subscription or cancellation fee is charged.
 
 The model uses a small fixture pool and cannot promise a match. Geography is a sample distance field rather than actual coordinates. All fixture partners accept all genders and ages 18–55, while the model supports mutual preferences. A suggested meeting is one hour; custom offers can be outside saved availability because both sides must explicitly accept a change. Time ranges do not span midnight. Vegan and other dietary support is illustrative, not allergy verification.
 
@@ -90,8 +109,8 @@ The heart logo is original SVG. Icons use locally bundled [Phosphor](https://git
 - https://images.unsplash.com/photo-1554118811-1e0d58224f24
 - https://images.unsplash.com/photo-1517248135467-4c7edcad34c4
 
-Photos, icons and code are bundled locally. Typography uses Georgia display headings and the system font stack for body text and controls. The application makes no external requests during use.
+Photos, icons and code are bundled locally. Typography uses Georgia display headings and the system font stack for body text and controls. Account requests go to the Node server, which calls the configured Supabase project. Server keys never enter the browser bundle.
 
 ## Hosting
 
-`.openai/hosting.json` records the owner-private Site identity and serves `dist/`. Keep that identity for future updates.
+`.openai/hosting.json` is metadata from the original Sites hosting setup: the static output directory (`dist`) and that Site's project ID. It contains no API key or executable code, and the Node server does not read it. It is used only by the Sites publishing workflow; keep it if updating that hosted Site. It is unrelated to Supabase and is not needed to run this app through Node or another host.

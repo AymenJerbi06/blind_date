@@ -1,4 +1,4 @@
-/* A local, single-user prototype. All counterpart profiles and replies are simulated. */
+/* Supabase account access with account-scoped local demo data. Counterparts/replies remain simulated. */
 const storageKey='blinddate-demo-v1';
 const app=document.querySelector('#app'),modalRoot=document.querySelector('#modal-root'),tabRoot=document.querySelector('#tab-root');
 const navItems=[['home','Preferences','spark'],['dates','Dates','calendar'],['availability','Availability','clock'],['profile','Profile','user']];
@@ -8,11 +8,17 @@ const newIdentity=prefix=>`${prefix}-${Date.now().toString(36)}-${++identitySequ
 const deckLast=questions.length-1;
 const defaultState=AppState.create;
 const isMember=()=>!!state.previewPlan; // demo membership: no payment is ever taken
-const repository=LocalRepository.create(localStorage,storageKey);
+let repository=LocalRepository.create(localStorage,storageKey);
 const readState=()=>AppState.hydrate(repository.read(),{deckLast});
 let fbErrors={};
 let state=readState(),modal=null,lastFocus=null,previousView=null,toastTimer,agreementConsent=false,availabilityErrors={},preferenceErrors={},showAllVenues=false,searchTimer=null,searchToken=0;
+let account={loading:true,user:null,screen:'welcome',email:'',error:'',busy:false};
 const viewStack=[];
+function clearAccountTransientUI(){clearTimeout(toastTimer);const notice=document.querySelector('#toast');if(notice){notice.textContent='';notice.classList.remove('visible');}fbErrors={};availabilityErrors={};preferenceErrors={};agreementConsent=false;lastFocus=null;}
+function activateAccount(user){clearAccountTransientUI();const theme=state.theme;clearTimeout(searchTimer);++searchToken;modal=null;modalRoot.innerHTML='';document.body.style.overflow='';app.inert=false;viewStack.length=0;previousView=null;repository=LocalRepository.create(localStorage,EntryFlow.keyForUser(storageKey,user.id));const saved=repository.read();state=AppState.hydrate(saved,{deckLast});if(!saved)state.theme=theme;account={loading:false,user,screen:'welcome',email:'',error:'',busy:false};render();window.scrollTo({top:0,behavior:'instant'});}
+async function restoreAccount(){try{const result=await AuthClient.session();if(result.user){activateAccount(result.user);return;}account.loading=false;account.error=result.available?'':'Account access is temporarily unavailable. Please try again later.';}catch(error){account.loading=false;account.error=error.message;}if(typeof location!=='undefined'&&new URLSearchParams(location.search).get('auth')==='confirmation_failed'){account.screen='log-in';account.error='The link could not open your session. If your email is confirmed, log in below.';history.replaceState({},'','/');}render();}
+async function submitAccount(form){if(account.busy)return;const email=form.elements.email.value.trim(),password=form.elements.password.value,signup=account.screen==='sign-up';const problem=EntryFlow.credentialError(email,password,signup);const errorNode=form.querySelector('[data-auth-error]');errorNode.hidden=false;errorNode.textContent=problem;if(problem){form.querySelector(!/^\S+@\S+\.\S+$/.test(email)?'[name="email"]':'[name="password"]').focus();return;}account.busy=true;account.email=email;form.setAttribute('aria-busy','true');form.querySelectorAll('input,button').forEach(node=>node.disabled=true);document.querySelectorAll('[data-action="auth-view"]').forEach(node=>node.disabled=true);const submit=form.querySelector('[type="submit"]');submit.textContent=signup?'Creating account…':'Logging in…';try{const result=await(signup?AuthClient.signUp(email,password):AuthClient.logIn(email,password));if(result.user)activateAccount(result.user);else if(result.confirmationRequired){account.screen='confirm';account.error='';render();}else throw new Error('We couldn’t open your account. Please try again.');}catch(error){if(form.isConnected){errorNode.textContent=error.message;errorNode.focus?.();}}finally{account.busy=false;if(form.isConnected){form.setAttribute('aria-busy','false');form.querySelectorAll('input,button').forEach(node=>node.disabled=false);document.querySelectorAll('[data-action="auth-view"]').forEach(node=>node.disabled=false);submit.textContent=signup?'Create account':'Log in';}}}
+async function logOut(){if(account.busy)return;persistDraft();account.busy=true;try{await AuthClient.logOut();clearAccountTransientUI();const theme=state.theme;clearTimeout(searchTimer);++searchToken;modal=null;modalRoot.innerHTML='';app.inert=false;document.body.style.overflow='';repository=LocalRepository.create(localStorage,storageKey);state={...defaultState(),theme};account={loading:false,user:null,screen:'welcome',email:'',error:'',busy:false};viewStack.length=0;previousView=null;render();window.scrollTo({top:0,behavior:'instant'});}catch(error){toast(error.message);}finally{account.busy=false;}}
 function save(){try{repository.write(state);return true;}catch{toast('This browser could not save your progress.');return false;}}
 function applyResult(result,{redraw=true}={}) {
   if(!result.ok){if(result.errors){fbErrors=result.errors;if(redraw)render();}else if(result.error)toast(result.error);return false;}
@@ -28,6 +34,18 @@ function yourTurn(){const s=state.session;if(!s)return false;return['found','agr
 function navMarkup(){return navItems.map(([view,label,graphic])=>{const active=state.view===view||(view==='profile'&&state.view==='membership'),dot=view==='home'&&yourTurn();return`<button class="nav-button ${active?'active':''}" data-action="navigate" data-view="${view}" ${active?'aria-current="page"':''} ${dot?`aria-label="${label}, your turn"`:''}><span class="nav-icon">${icon(graphic,active)}${dot?'<span class="nav-dot" aria-hidden="true"></span>':''}</span><span>${label}</span></button>`;}).join('');}
 function render(){
   agreementConsent=false;
+  const entryStage=EntryFlow.stage(account,state.profile);document.body.dataset.entryStage=entryStage;
+  if(entryStage!=='app'){
+    document.documentElement.dataset.theme=state.theme;
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content',state.theme==='light'?'#fff8f4':'#211526');
+    tabRoot.innerHTML='';app.inert=false;document.body.style.overflow='';
+    if(entryStage==='setup'){
+      app.innerHTML='';
+      if(!modal?.required){const draft=state.drafts.profile;modal={type:'onboarding',required:true,step:draft?.step||0,draft:clone(draft?.draft||state.profile),errors:{}};}
+      renderModal();
+    }else{modal=null;modalRoot.innerHTML='';app.innerHTML=entryPage();PremiumMotion.enter(app.querySelector('#entry-content'));}
+    return;
+  }
   const active=document.activeElement,focusId=app.contains(active)?active.id:null,focusData=app.contains(active)&&active.dataset.action?{...active.dataset}:null;
   document.documentElement.dataset.theme=state.theme;document.querySelector('meta[name="theme-color"]')?.setAttribute('content',state.theme==='light'?'#fff8f4':'#211526');
   const titles={home:'Your preferences',dates:'Your dates',availability:'Your availability',profile:'Your profile',membership:'blinddate+'};
@@ -37,7 +55,7 @@ function render(){
   if(!modal){const target=focusId?document.getElementById(focusId):focusData?[...app.querySelectorAll('[data-action]')].find(el=>el.dataset.action===focusData.action&&el.dataset.value===focusData.value&&el.dataset.group===focusData.group):null;target?.focus({preventScroll:true});}
   updateCountdown();bindQuestionSwipe();PremiumMotion.enter(document.querySelector('#page-content'));
 }
-function navigate(view,pushed=false,goingBack=false){if(modal)closeModal(false);if(!['home','dates','availability','profile','membership'].includes(view))view='home';if(!goingBack){if(pushed)viewStack.push(state.view);else viewStack.length=0;}previousView=viewStack.at(-1)||null;state.view=view;save();render();window.scrollTo({top:0,behavior:'instant'});document.querySelector('.page-title')?.focus({preventScroll:true});}
+function navigate(view,pushed=false,goingBack=false){if(EntryFlow.stage(account,state.profile)!=='app'){render();return;}if(modal)closeModal(false);if(!['home','dates','availability','profile','membership'].includes(view))view='home';if(!goingBack){if(pushed)viewStack.push(state.view);else viewStack.length=0;}previousView=viewStack.at(-1)||null;state.view=view;save();render();window.scrollTo({top:0,behavior:'instant'});document.querySelector('.page-title')?.focus({preventScroll:true});}
 
 function capturePreferenceFields(){app.querySelectorAll('[data-pref-field]').forEach(input=>{const key=input.dataset.prefField;state.deck.answers[key]=['minAge','maxAge','radius'].includes(key)?(input.value===''?'':Number(input.value)):input.value;});}
 function savePreferenceDraft(){capturePreferenceFields();const ok=save(),el=app.querySelector('[data-preference-saved]');if(el){el.textContent=ok?'✓ Draft saved here — choose whether to reuse it at the end.':'This draft could not be saved.';el.classList.toggle('saved-status',ok);}}
@@ -86,7 +104,12 @@ function updateCountdown(){const el=document.querySelector('[data-countdown]');i
 async function shareDate(){const b=state.booking;if(!b)return;const v=venueById(b.venueId),details=`blinddate · DEMO ONLY, not a reservation\n${v.name}, ${v.area}, Vancouver (fictional venue)\n${dateLabel(b.timestamp,{weekday:'long',month:'long',day:'numeric',year:'numeric'})} at ${timeLabel(b.timestamp)} PT\n${Dating.billText(b.billMode)}\nFree cancellation until ${dateLabel(b.timestamp-86400000)} at ${timeLabel(b.timestamp-86400000)} PT.`;try{await navigator.clipboard.writeText(details);toast('Demo date details copied.');}catch{openModal('copy',{details});}}
 
 async function handleAction(action,target){
+  if(!EntryFlow.allows(EntryFlow.stage(account,state.profile),action))return;
   switch(action){
+    case'auth-view':if(account.busy)break;account.screen=['welcome','sign-up','log-in'].includes(target.dataset.view)?target.dataset.view:'welcome';account.error='';render();window.scrollTo({top:0,behavior:'instant'});app.querySelector('h1')?.focus({preventScroll:true});break;
+    case'auth-password':{const input=document.querySelector('#account-password');if(!input)break;input.type=input.type==='password'?'text':'password';target.textContent=input.type==='password'?'Show':'Hide';target.setAttribute('aria-pressed',String(input.type==='text'));target.setAttribute('aria-label',input.type==='password'?'Show password':'Hide password');break;}
+    case'auth-retry':account.loading=true;account.error='';render();restoreAccount();break;
+    case'auth-log-out':await logOut();break;
     case'navigate':navigate(target.dataset.view);break;
     case'open-profile':if(state.view!=='profile')navigate('profile',true);break;
     case'membership':navigate('membership',true);break;
@@ -166,6 +189,7 @@ async function handleAction(action,target){
   }
 }
 document.addEventListener('click',event=>{const target=event.target.closest('[data-action]');if(target&&!target.disabled)handleAction(target.dataset.action,target);});
+document.addEventListener('submit',event=>{if(event.target.matches('.account-form')){event.preventDefault();submitAccount(event.target);}});
 document.addEventListener('input',event=>{const el=event.target;if(el.matches('[data-trusted-field]')){state.trusted[el.dataset.trustedField]=el.value.slice(0,el.dataset.trustedField==='name'?40:20);save();return;}if(el.matches('[data-fb-field]')&&state.booking){changeFeedback(el.dataset.fbField,el.value,false);return;}if(el.matches('[data-profile-field]')&&modal?.type==='onboarding'){captureProfileFields();persistDraft();}if(el.matches('[data-pref-field]')){savePreferenceDraft();if(el.dataset.prefField==='radius')app.querySelector('#radius-value').textContent=el.value;}if(el.matches('[data-window-field]')){const w=state.availabilityDraft.windows[+el.dataset.windowIndex];if(w){w[el.dataset.windowField]=el.value;const ok=save(),status=app.querySelector('[data-availability-saved]');if(status){status.textContent=ok?'✓ Availability draft saved':'Draft could not be saved';status.classList.toggle('saved-status',ok);}}}if(el.matches('[data-proposal-field]')&&modal?.type==='proposal')persistDraft();});
 document.addEventListener('change',event=>{const el=event.target;if(el.matches('[data-photo-input]')){addPhoto(el.files?.[0]);el.value='';return;}if(el.matches('[data-verify]')&&modal?.type==='verify'){if(el.files?.length)modal[el.dataset.verify]=true;el.value='';renderModal();return;}if(el.matches('[data-marker-field]')&&state.session){state.session.marker={...Trust.normalizeMarker(state.session.marker),[el.dataset.markerField]:el.value};save();const preview=app.querySelector('[data-marker-preview]');if(preview)preview.textContent=Trust.markerText(state.session.marker)||'Choose a colour and what you’ll wear.';app.querySelector('.car-fields')?.toggleAttribute('hidden',state.session.marker.arrival!=='by car');return;}if(el.matches('[data-profile-field]')&&modal?.type==='onboarding'){captureProfileFields();persistDraft();if(el.dataset.profileField==='gender')renderModal();}if(el.matches('[data-pref-field]'))savePreferenceDraft();if(el.id==='agreement-consent'){agreementConsent=el.checked;const btn=app.querySelector('[data-action="confirm-agreement"]');if(btn)btn.disabled=!agreementConsent;}if(el.id==='cancel-reason'&&modal?.type==='cancel'){modal.reason=el.value;renderModal();}});
 modalRoot.addEventListener('click',event=>{if(event.target.classList.contains('dialog-backdrop'))dismissModal();});
@@ -173,3 +197,4 @@ document.addEventListener('keydown',event=>{if(!modal)return;if(event.key==='Esc
 window.addEventListener('scroll',()=>document.body.classList.toggle('scrolled',window.scrollY>74),{passive:true});
 setInterval(updateCountdown,30000);
 render();
+if(typeof fetch==='function')restoreAccount();

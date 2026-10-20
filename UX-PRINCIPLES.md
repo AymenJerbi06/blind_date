@@ -1,5 +1,38 @@
 # Dating flow and UX review
 
+## Newcomer, account and required-profile flow — October 20, 2026
+
+New visitors see the concept and Create account / Log in only. Supabase account access (including email confirmation when required) precedes full-page profile creation. App tabs, notifications, avatar/settings, dates, availability and membership appear only after a valid profile is saved. Returning completed accounts enter Preferences. Incomplete accounts resume their own saved step. This explicitly overrides the supplied iOS skill's usual always-visible signed-in tabs rule **during required initial profile creation**, as requested by the founder; ordinary profile editing still keeps the tabs.
+
+| Law | Application in this change |
+|---|---|
+| 01 Jakob | Familiar welcome, sign up, log in, setup and then stable four-tab navigation. |
+| 02 Hick | Two entry choices; setup exposes only the current profile topic and its progression. |
+| 03 Fitts | Inspected targets are at least 44px; Create account fits within the short phone's first screen. |
+| 04 Von Restorff | One primary action per entry/setup screen; Show password and back/log out stay secondary. |
+| 05 Zeigarnik | Five real steps; drafts resume on reload and are scoped to the authenticated account. |
+| 06 Doherty | Immediate validation/press feedback; account requests show a busy state and prevent duplicate submissions. |
+| 07 Tesler | Stage policy controls rendering, navigation and action dispatch instead of making users find setup. |
+| 08 Parkinson | No invented signup countdown or time pressure. |
+| 09 Peak–End | Saving the valid final profile opens Preferences and its app tabs. |
+| 10 Response time | Existing shared springs/reduced-motion behavior retained; no forced animation delay on account responses. |
+| 11 Miller | Concept in three short points; email/password in one group; five named profile topics. |
+| 12 Proximity | Password hint/toggle next to password; validation next to the form; progress next to profile questions. |
+| 13 Similarity | Existing warm palette, Georgia headings, filled inputs, Phosphor icons and pill actions reused. |
+| 14 Serial position | Concept → account → profile → partner preferences; unrelated app destinations stay out of setup. |
+| 15 Aesthetic–usability | Approved romance styling retained and visually inspected; no claim of measured usability or native quality. |
+| 16 Anchoring | No promotional prices, sample ratings or membership anchors on account entry. |
+| 17 Loss aversion | Back/reload retains profile drafts. Account changes clear transient UI and keep each person's local data separate. |
+| 18 Scarcity | No fabricated people, demand badges or expiring offers. |
+| 19 Sunk cost | Back returns from account forms; initial profile creation offers Log out, preserving its draft. No bypass into an incomplete app. |
+| 20 Postel | Email whitespace normalized; passwords preserved exactly; specific errors, bounded requests and strict session validation. |
+
+Verification: all six automated suites pass, including real local HTTP tests with a mocked Supabase provider. New checks cover origin/body/rate guards, opaque cookies, token refresh/logout, one-use PKCE callback, password preservation at the API, stage/action gates, legacy-data preservation and account-specific draft isolation. Real Supabase Auth settings were read successfully: email signup is enabled and confirmation is required. No real accounts or email sends were created during QA.
+
+Browser: 51 phone layout observations at 390×844 / 375×668 CSS pixels, both themes, plus three preliminary wider-view observations. Coverage includes welcome, sign up/log in/validation, inbox confirmation, all five required-profile steps, actual photo chooser, Escape/reload, completion, returning login, logout and account switching. No recorded overflow, text below 12px, inspected targets below 44px or navigation leakage. Twelve flat-background contrast audits made 172 comparisons with no failures. Final captured error/warning log was empty. Artifacts: `qa/newcomer-audit.json`, `qa/newcomer-welcome-light.jpg`, `qa/newcomer-profile-dark.jpg`.
+
+Limits: live email delivery and the project's redirect allowlist need an end-to-end check; README gives the callback configuration. Server sessions are memory-only, so a restart signs users out. Profile/date data remains browser-local. Physical iPhone safe areas/keyboard/reachability, VoiceOver, large/Dynamic Type, exhaustive composite/transient contrast and real-user testing remain open. Browser zoom rounds the short requested height from 667 to 668 pixels. This pass is local; it was not pushed or deployed.
+
 ## Current architecture and UX pass — October 20, 2026
 
 The current app has **five profile steps and ten preference cards**. This pass preserves the approved romance/mystery palette, card shapes, Phosphor icons, motion and four tabs. It uses the supplied `iOSPremiumSkill.md` with the founder's explicit dating-app direction taking precedence over its financial-app colour examples. All changes remain local.

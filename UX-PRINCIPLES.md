@@ -1,5 +1,36 @@
 # Dating flow and UX review
 
+## Halal and gender-specific bill labels — October 20, 2026
+
+Halal is selectable in setup and profile editing, persists with the profile, and uses the existing mutual dietary checks for venues and proposals. The fictional Olive & Oak fixture now has a Halal tag; Vegetarian or Vegan alone does not imply Halal. Men see Split the bill / I’ll pay, and women see Split the bill / I accept if he pays. Either or both can be selected. Profile and restaurant summaries reuse these labels. Splitting still means each pays for their own food and drinks. Existing saved choice IDs and the other gender options are preserved.
+
+The supplied iOS reference favors familiar grouped controls and clear choices. This change retains the existing dropdown and selectable bill rows, with no layout, color, icon or motion change. Review against the 20 laws:
+
+| Law | Application |
+|---|---|
+| 01 Jakob | Existing profile and restaurant navigation. |
+| 02 Hick | Exactly two bill options for men and women. |
+| 03 Fitts | Existing full-width bill targets and diet select. |
+| 04 Von Restorff | Existing single primary form action. |
+| 05 Zeigarnik | Existing setup progress and selected answers. |
+| 06 Doherty | Existing immediate choice feedback and draft save. |
+| 07 Tesler | Dietary filters and mutual bill checks do the work. |
+| 08 Parkinson | No new step or deadline. |
+| 09 Peak–End | Existing review and save endpoint. |
+| 10 Response time | No added network call or artificial wait. |
+| 11 Miller | Two related bill choices grouped together. |
+| 12 Proximity | Each label retains its explanation beside it. |
+| 13 Similarity | Setup, profile and restaurant summary share labels. |
+| 14 Serial position | Existing question and option order. |
+| 15 Aesthetic–Usability | Existing visual system; no measured usability claim. |
+| 16 Anchoring | No payment arrangement is preselected. |
+| 17 Loss aversion | Saved choice IDs remain compatible. |
+| 18 Scarcity | No new urgency or availability claims. |
+| 19 Sunk cost | Both choices remain optional individually and editable. |
+| 20 Postel | Profile normalization retains Halal and removes bill choices incompatible with a changed gender. |
+
+Automated checks exercise saved Halal profiles, tagged and untagged venues, both sides' proposal restrictions, rendered gender-specific bill rows, accepting both options and incompatible bill choices. Local browser control remains disabled in Work settings, so a fresh two-theme/two-phone screenshot and contrast audit is unverified.
+
 ## Signup request-verification correction — October 20, 2026
 
 The reported “Reload the app and try again” message was the app's pre-provider request-origin rejection. The account API now verifies a synchronizer token bound to a browser session, retaining explicit foreign-origin, Fetch Metadata, JSON-content-type and body/rate guards. Missing or opaque Origin is accepted only with valid browser-bound proof. Expired tokens renew once; provider errors and ambiguous transport failures are not replayed. Known sender-restriction/email-limit errors have specific copy. `pastDatesList`, found missing in a browser console trace from the earlier build, is restored with empty/history tab-rendering regressions.

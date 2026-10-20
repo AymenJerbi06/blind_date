@@ -89,7 +89,9 @@ The connection code requires a Node server. Deploying only `dist/` to static hos
      - Safety, verification and giving ratings stay free. Per-introduction record unlocks do not become lifetime access to that person.
    - **Demo controls:** "jump in time" on the Dates tab lets you try before, during and after a date.
 
-Bill options distinguish **each pays for their own food and drinks** from splitting a combined total. A man can accept paying his own or offer to cover both. A woman can accept paying her own or the other person covering both. Non-binary/unspecified profiles can choose all three arrangements. More than one acceptable option is allowed. An offer to pay is never inferred as acceptance by the other person.
+Bill choices depend on the profile's gender: men see **Split the bill** and **I’ll pay**; women see **Split the bill** and **I accept if he pays**. Splitting means **each pays for their own food and drinks**, not half of a combined total. Non-binary/unspecified profiles can choose all three arrangements. More than one acceptable option is allowed. An offer to pay is never inferred as acceptance by the other person.
+
+**Halal** is available in dietary preferences and filters venue choices and date proposals for both people. Olive & Oak is the fictional Halal-tagged venue in this demo; other dietary labels alone never count as Halal verification.
 
 Profile also contains theme, membership previews (C$29.99 monthly / C$299.99 annual, no checkout), safety/report previews and Reset. Notifications are saved local events and navigate to the relevant current flow. Every fresh launch opens home. Reloading an unfinished search returns to planning; restored proposals require fresh final consent.
 

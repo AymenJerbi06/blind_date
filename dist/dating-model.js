@@ -10,7 +10,7 @@ const Dating = (() => {
   const politics=['Prefer not to say','Progressive / left','Centrist','Conservative / right','Another view'];
   const intents=['A long-term relationship','Open to exploring'];
   const genders=['Not specified','Man','Woman','Non-binary'];
-  const diets=['No restrictions','Vegetarian','Vegan','Gluten-free'];
+  const diets=['No restrictions','Halal','Vegetarian','Vegan','Gluten-free'];
   // Tinder-style lifestyle and background answers. Background answers are optional and never shown to a match.
   const drinking=['Never','On special occasions','Socially','Most nights'];
   const workouts=['Every day','Often','Sometimes','Never'];
@@ -29,9 +29,9 @@ const Dating = (() => {
   const pick=(value,options,fallback)=>options.includes(value)?value:fallback;
   const unique=(list,options)=>Array.isArray(list)?[...new Set(list.filter(x=>options.includes(x)))]:[];
   function billChoices(profile) {
-    const choices=[{id:'own',title:'We each pay for our own',detail:'Each person pays only for their own food and drinks.'}];
-    if(profile.gender!=='Woman')choices.push({id:'cover',title:'I’m happy to cover both',detail:'I can offer to pay for both meals.'});
-    if(profile.gender!=='Man')choices.push({id:'covered',title:'I’m comfortable being treated',detail:'I’m happy if my date offers to cover both meals.'});
+    const choices=[{id:'own',title:'Split the bill',detail:'We each pay for our own food and drinks.'}];
+    if(profile.gender!=='Woman')choices.push({id:'cover',title:'I’ll pay',detail:'I’m happy to pay for both of us.'});
+    if(profile.gender!=='Man')choices.push({id:'covered',title:profile.gender==='Woman'?'I accept if he pays':'I’m comfortable being treated',detail:profile.gender==='Woman'?'I’m comfortable with the man paying for both of us.':'I’m happy if my date offers to cover both meals.'});
     return choices;
   }
   function normalizeProfile(raw={}) {

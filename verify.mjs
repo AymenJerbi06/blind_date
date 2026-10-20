@@ -61,6 +61,8 @@ vm.runInContext(source+`
   assert.deepEqual(Dating.billOptions({...profile,billPreferences:['cover']},other),['you-cover']);
   assert.deepEqual(Dating.billOptions({...profile,gender:'Woman',billPreferences:['covered']},Dating.person('032')),['date-covers']);
   assert.deepEqual(Dating.billOptions({...profile,billPreferences:['cover']},{...other,billPreferences:['cover']}),[],'Two offers to pay do not imply an accepted arrangement');
+  assert.deepEqual(Dating.billOptions({...profile,billPreferences:['own']},{...other,billPreferences:['covered']}),[],'A woman accepting only being treated cannot match a man who only splits');
+  assert.deepEqual(Dating.billOptions({...profile,billPreferences:['cover']},{...other,billPreferences:['own']}),[],'A man offering only to pay cannot override a woman choosing only to split');
   assert.match(Dating.billText('own'),/their own food/,'Own-meal payment is not silently defined as half of a combined bill');
   assert.equal(Dating.normalizeProfile({...profile,gender:'Woman',billPreferences:['cover']}).complete,false,'An incompatible changed bill preference requires review');
   assert.equal(Dating.preferenceErrors({...prefs,minAge:40,maxAge:22}).maxAge.length>0,true);
@@ -76,6 +78,17 @@ vm.runInContext(source+`
   assert.ok(Dating.availabilityErrors({...availability,venueIds:['sunday']},{...profile,diet:'Gluten-free'}).venues);
   assert.equal(Dating.venueFits(venues.find(v=>v.id==='fig'),{diet:'Vegan'}),true);
   assert.equal(Dating.venueFits(venues.find(v=>v.id==='sunday'),{diet:'Vegan'}),false);
+  const halalProfile=Dating.normalizeProfile({...profile,diet:'Halal'});
+  assert.equal(halalProfile.diet,'Halal','Halal survives profile normalization');
+  assert.equal(halalProfile.complete,true);
+  assert.equal(Dating.normalizeProfile(JSON.parse(JSON.stringify(halalProfile))).diet,'Halal','A saved profile keeps its dietary preference');
+  assert.equal(Dating.venueFits(venues.find(v=>v.id==='olive'),halalProfile),true);
+  assert.equal(Dating.venueFits(venues.find(v=>v.id==='fig'),halalProfile),false,'Plant-based does not imply Halal');
+  assert.ok(Dating.availabilityErrors(availability,halalProfile).venues,'An earlier non-Halal selection requires review');
+  assert.deepEqual(Dating.availabilityErrors({...availability,venueIds:['olive']},halalProfile),{});
+  assert.ok(Dating.proposalErrors(overlap,halalProfile,other).venue,'A proposal respects your Halal requirement');
+  assert.ok(Dating.proposalErrors(overlap,profile,{...other,diet:'Halal'}).venue,'A proposal also respects your date’s Halal requirement');
+  assert.equal(Dating.proposalErrors({...overlap,venueId:'olive'},halalProfile,other).venue,undefined);
   assert.equal(overlap.venueId,'juniper');
   assert.equal(overlap.time,'18:00');
   assert.equal(overlap.billMode,'own');
@@ -210,6 +223,21 @@ vm.runInContext(source+`
   state.pastDates=[{matchId:'021',outcome:'revealed',stars:5}];assert.match(pastDatesList(),/Mutual yes/);
   state.pastDates=[{matchId:'021',outcome:'no-show'}];assert.match(pastDatesList(),/reported locally/);
   state.pastDates=[];
+  // The real setup renderers and restaurant summary use the same gender-specific choices.
+  modal={type:'onboarding',step:2,draft:clone(halalProfile),errors:{}};
+  assert.ok(onboardingModal().includes('<option selected>Halal</option>'));
+  for(const [gender,payment] of [['Man','cover'],['Woman','covered']]){
+    modal={type:'onboarding',step:4,draft:{...clone(profile),gender,billPreferences:['own',payment]},errors:{}};
+    const billMarkup=onboardingModal();
+    assert.equal((billMarkup.match(/class="answer-option /g)||[]).length,2,'Men and women each see exactly two bill choices');
+    assert.ok(billMarkup.includes('<strong>Split the bill</strong>'));
+    assert.equal((billMarkup.match(/aria-pressed="true"/g)||[]).length,2,'Both options can be accepted together');
+    if(gender==='Man'){assert.ok(billMarkup.includes('<strong>I’ll pay</strong>'));assert.ok(!billMarkup.includes('data-value="covered"'));}
+    else{assert.ok(billMarkup.includes('<strong>I accept if he pays</strong>'));assert.ok(!billMarkup.includes('data-value="cover"'));}
+    state.profile=clone(modal.draft);
+    assert.ok(availabilityPage().includes(gender==='Man'?'I’ll pay':'I accept if he pays'),'The restaurant screen shows the same choices');
+  }
+  modal=null;state.profile=clone(profile);
   const legacyDocument=localStorage.getItem(storageKey);
   activateAccount({id:'account-a',email:'a@example.test'});
   assert.equal(state.profile.complete,false,'New accounts do not inherit a previous local profile');

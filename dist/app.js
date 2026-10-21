@@ -10,7 +10,7 @@ const defaultState=AppState.create;
 const isMember=()=>!!state.previewPlan; // demo membership: no payment is ever taken
 let repository=LocalRepository.create(localStorage,storageKey);
 const readState=()=>AppState.hydrate(repository.read(),{deckLast});
-let fbErrors={};
+let fbErrors={},autoAdvanceTimer=null; // single-choice deck cards advance on tap, like a swipe
 let state=readState(),modal=null,lastFocus=null,previousView=null,toastTimer,agreementConsent=false,availabilityErrors={},preferenceErrors={},showAllVenues=false,searchTimer=null,searchToken=0;
 let account={loading:true,user:null,screen:'welcome',email:'',error:'',busy:false};
 const viewStack=[];
@@ -120,10 +120,12 @@ async function handleAction(action,target){
     case'onboarding-back':captureProfileFields();modal.step=Math.max(0,modal.step-1);persistDraft();renderModal(true);break;
     case'onboarding-next':{captureProfileFields();const invalid=modal.step===Dating.profileSteps-1?Dating.firstProfileError(modal.draft):null;if(invalid)modal.step=invalid.step;modal.errors=invalid?.errors||Dating.profileErrors(modal.draft,modal.step);if(Object.keys(modal.errors).length){renderModal();modalRoot.querySelector('#profile-'+Object.keys(modal.errors)[0])?.focus();break;}if(modal.step<Dating.profileSteps-1){modal.step++;persistDraft();renderModal(true);}else{if(!applyResult({ok:true,state:{...state,profile:{...modal.draft,verification:state.profile.verification,schema:2,name:modal.draft.name.trim().replace(/\s+/g,' '),work:modal.draft.work.trim(),complete:true},drafts:{...state.drafts,profile:null}}},{redraw:false}))break;modal=null;closeModal(false);render();window.scrollTo({top:0,behavior:'instant'});document.querySelector('.page-title')?.focus({preventScroll:true});toast('Your profile is saved. Now explore who you’d like to meet.');}break;}
     case'profile-choice':{captureProfileFields();const key=target.dataset.group,value=target.dataset.value;if(target.dataset.multi)modal.draft[key]=modal.draft[key].includes(value)?modal.draft[key].filter(v=>v!==value):[...modal.draft[key],value];else modal.draft[key]=value;delete modal.errors[key];persistDraft();renderModal();break;}
-    case'preference-choice':{capturePreferenceFields();const key=target.dataset.group,value=target.dataset.value;if(target.dataset.multi)state.deck.answers[key]=state.deck.answers[key].includes(value)?state.deck.answers[key].filter(v=>v!==value):[...state.deck.answers[key],value];else state.deck.answers[key]=value;save();render();break;}
+    case'preference-choice':{capturePreferenceFields();const key=target.dataset.group,value=target.dataset.value;if(target.dataset.multi)state.deck.answers[key]=state.deck.answers[key].includes(value)?state.deck.answers[key].filter(v=>v!==value):[...state.deck.answers[key],value];else state.deck.answers[key]=value;save();render();
+      if(!target.dataset.multi&&questions[state.deck.step]?.options){clearTimeout(autoAdvanceTimer);const step=state.deck.step;autoAdvanceTimer=setTimeout(()=>{if(state.view==='home'&&!state.session&&state.deck.step===step&&!modal)advanceQuestion(1);},380);}
+      break;}
     case'preference-open':state.deck.answers[target.dataset.group]=[];save();render();break;
     case'question-next':advanceQuestion(1);break;
-    case'question-back':advanceQuestion(-1);break;
+    case'question-back':clearTimeout(autoAdvanceTimer);advanceQuestion(-1);break;
     case'edit-questions':state.deck.step=0;preferenceErrors={};save();render();break;
     case'edit-question':{const step=Math.max(0,Math.min(questions.length-1,+target.dataset.value||0));state.deck.step=step;preferenceErrors={};save();render();window.scrollTo({top:0,behavior:'instant'});break;}
     case'use-saved':if(state.savedPreferences){state.deck={step:'review',answers:clone(state.savedPreferences)};save();render();}break;

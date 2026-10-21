@@ -241,6 +241,28 @@ The founder asked for:
 - emergency alerts;
 - a server-side leak filter (it must run on the server in a live app, not only in the browser).
 
+## UX pass after the account and onboarding changes (October 20, 2026)
+
+A full walkthrough (welcome, sign-up, setup, deck, review, availability, search, introduction, proposal, agreement, dates before/during/after, profile, membership) found six things working against the goal: a quick personality deck, then one agreed plan, then a real first hello.
+
+| Finding | Change | Laws |
+|---|---|---|
+| A raspberry box flashed around every page title after navigation (programmatic focus for screen readers) | Headings focused with `tabindex="-1"` no longer draw a focus ring; real controls keep theirs | Aesthetic–usability |
+| The 10-card deck needed two taps per card | Single-choice cards advance about 0.4 s after an answer is tapped; multi-select and form cards still use Next; Back/swipe still revisit | Fitts, Doherty, Zeigarnik |
+| The introduction buried its one job (agree on a plan) under a large locked "record" block and a schedule comparison that repeated the suggested plan | The plan comes first. The comparison folds into "Compare both schedules" when a shared plan exists (still shown open when plans differ). The locked record is one row: "Their rating & show-up record · C$1.99 · Unlock", with "Included with blinddate+" below | Hick, Serial position, Von Restorff |
+| The Dates countdown, the most anticipatory element, sat near the bottom | The countdown is the hero at the top. Cancellation terms sit under "Manage your date", next to Request change / Cancel | Peak–end, Proximity |
+| Profile "My record" looked editable (pencil) and left an orphan tile; one photo stretched full width | A read-only stat strip (dates · no-shows · late cancels; red only when above zero) under the header chips, like Tinder's counts row. Six even tiles. Photos show as a 3-slot portrait grid with empty slots | Similarity, Jakob |
+| The recognition-note dropdowns cut off "Nothing else" / "Not saying" | Placeholders are now "None" / "Skip" | Postel |
+
+**Verified:**
+- `npm run check`: all 7 suites pass.
+- Playwright walkthrough: 18 screens × 390×844 and 375×667 × light and dark. No sideways overflow, no text under 12px, no target under 44×44, no JavaScript errors.
+- A real click on a deck answer advanced to card 2.
+- Page titles report no focus outline.
+- One regression from an older full-width `.trust-card.locked .button` rule was found in a screenshot and removed at its source, along with the unused `.trust-blur` styles.
+
+The walkthrough simulated a signed-in user in the browser (`activateAccount`); no Supabase account was created.
+
 ## Still open
 
 Physical iPhone safe areas, real touch drag feel/reachability, keyboard overlap, large/Dynamic Type text, VoiceOver order/announcements, exhaustive image/composited/transient contrast and real user testing. The browser's 90% zoom rounds the small requested height to 668 rather than exactly 667 CSS pixels. Screenshot capture below a supported physical width is unavailable, so screenshots use the supported phone presentation while DOM checks verify the exact CSS widths above.

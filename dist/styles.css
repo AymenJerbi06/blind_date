@@ -547,9 +547,6 @@ body:has(.question-navigation) #page-content{padding-bottom:83px}
 .trust-facts .warn{color:var(--danger-ink)}
 .lock-pill{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:5px 10px;border-radius:999px;background:var(--panel);color:var(--muted)}
 .lock-pill .icon{width:14px;height:14px}
-.trust-blur{display:grid;gap:8px;margin-bottom:12px;filter:blur(5px);user-select:none}
-.trust-blur span{display:block;height:22px;border-radius:8px;background:var(--panel);color:transparent}
-.trust-card.locked .button{width:100%;margin-top:14px}
 .trust-card.locked .why-link{margin-top:4px}
 .verified-fact{color:var(--success-ink)}
 .verified-fact .icon{color:var(--success-ink)}
@@ -604,3 +601,38 @@ img.reveal-photo{rotate:5deg}
 .past-dates{margin-bottom:22px}
 .past-dates .chat-row+.chat-row{border-top:1px solid var(--line-subtle)}
 @media(max-width:369px){.star-button{width:46px;height:46px}.photo-slots{gap:8px}}
+
+/* UX pass (Oct 20). Page titles receive focus for screen readers after navigation; that
+   programmatic focus should not draw a raspberry box. Interactive controls keep their ring. */
+h1[tabindex="-1"]:focus-visible,h2[tabindex="-1"]:focus-visible,.page-title:focus-visible,#dialog-title:focus-visible{outline:none}
+
+/* Introduction: the plan comes first; the schedule comparison folds away when a shared plan exists. */
+.compare-details{margin:6px 0 16px;border-radius:20px;background:var(--card);padding:0 16px}
+.compare-details summary{display:flex;align-items:center;justify-content:space-between;min-height:52px;font-size:14px;font-weight:600;color:var(--accent-dark);cursor:pointer;list-style:none}
+.compare-details summary::-webkit-details-marker{display:none}
+.compare-details summary .icon{width:18px;height:18px;transition:rotate .2s}
+.compare-details[open] summary .icon{rotate:180deg}
+.compare-details[open]{padding-bottom:14px}
+.compare-details .comparison-grid{margin:4px 0 0}
+.trust-card.locked{padding:14px 16px 6px}
+.trust-row{display:flex;align-items:center;gap:12px}
+.trust-row .row-copy strong{font-size:15px}
+.trust-row .button{flex-shrink:0;min-height:44px;padding:10px 16px;font-size:14px}
+.trust-card.locked .why-link{margin:2px 0 0}
+
+/* Dates: the countdown is the hero. */
+.countdown-hero{text-align:center;margin-bottom:16px}
+.countdown-hero .countdown{font-size:40px;letter-spacing:-1.5px;margin:6px 0 8px;font-variant-numeric:tabular-nums}
+.countdown-hero>p:last-child{font-size:14px;color:var(--peach-ink);margin:0}
+.manage-note{margin:12px 4px 0}
+
+/* Profile: read-only record strip and a 3-slot photo grid. */
+.stat-strip{display:grid;grid-template-columns:repeat(3,1fr);margin-top:14px;padding:14px 8px;border-radius:24px;background:var(--card);text-align:center}
+.stat-strip>span{display:flex;flex-direction:column;gap:2px;font-size:12px;color:var(--muted)}
+.stat-strip>span+span{border-left:1px solid var(--line-subtle)}
+.stat-strip strong{font-size:22px;font-weight:700;color:var(--text);font-variant-numeric:tabular-nums}
+.stat-strip .warn strong{color:var(--danger-ink)}
+.photo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.photo-grid>img,.photo-grid>.photo-empty{aspect-ratio:3/4;width:100%;height:auto;border-radius:16px;object-fit:cover}
+.photo-grid>.photo-empty{display:grid;place-items:center;background:var(--panel);color:var(--muted)}
+.photo-grid>.photo-empty .icon{width:22px;height:22px}

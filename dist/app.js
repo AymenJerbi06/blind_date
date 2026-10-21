@@ -7,7 +7,7 @@ let identitySequence=0;
 const newIdentity=prefix=>`${prefix}-${Date.now().toString(36)}-${++identitySequence}`;
 const deckLast=questions.length-1;
 const defaultState=AppState.create;
-const isMember=()=>!!state.previewPlan; // demo membership: no payment is ever taken
+const isMember=()=>Plans.isMember(state); // demo membership: no payment is ever taken
 let repository=LocalRepository.create(localStorage,storageKey);
 const readState=()=>AppState.hydrate(repository.read(),{deckLast});
 let fbErrors={},autoAdvanceTimer=null; // single-choice deck cards advance on tap, like a swipe
@@ -118,7 +118,7 @@ async function handleAction(action,target){
     case'onboarding':startProfile(false,target.dataset.profileStep);break;
     case'profile-bill':startProfile(true);break;
     case'onboarding-back':captureProfileFields();modal.step=Math.max(0,modal.step-1);persistDraft();renderModal(true);break;
-    case'onboarding-next':{captureProfileFields();const invalid=modal.step===Dating.profileSteps-1?Dating.firstProfileError(modal.draft):null;if(invalid)modal.step=invalid.step;modal.errors=invalid?.errors||Dating.profileErrors(modal.draft,modal.step);if(Object.keys(modal.errors).length){renderModal();modalRoot.querySelector('#profile-'+Object.keys(modal.errors)[0])?.focus();break;}if(modal.step<Dating.profileSteps-1){modal.step++;persistDraft();renderModal(true);}else{if(!applyResult({ok:true,state:{...state,profile:{...modal.draft,verification:state.profile.verification,schema:2,name:modal.draft.name.trim().replace(/\s+/g,' '),work:modal.draft.work.trim(),complete:true},drafts:{...state.drafts,profile:null}}},{redraw:false}))break;modal=null;closeModal(false);render();window.scrollTo({top:0,behavior:'instant'});document.querySelector('.page-title')?.focus({preventScroll:true});toast('Your profile is saved. Now explore who you’d like to meet.');}break;}
+    case'onboarding-next':{captureProfileFields();const invalid=modal.step===Dating.profileSteps-1?Dating.firstProfileError(modal.draft):null;if(invalid)modal.step=invalid.step;modal.errors=invalid?.errors||Dating.profileErrors(modal.draft,modal.step);if(Object.keys(modal.errors).length){renderModal();modalRoot.querySelector('#profile-'+Object.keys(modal.errors)[0])?.focus();break;}if(modal.step<Dating.profileSteps-1){modal.step++;persistDraft();renderModal(true);}else{if(!applyResult({ok:true,state:{...state,profile:{...modal.draft,verification:state.profile.verification,schema:2,name:modal.draft.name.trim().replace(/\s+/g,' '),work:modal.draft.work.trim(),complete:true},drafts:{...state.drafts,profile:null}}},{redraw:false}))break;modal=null;closeModal(false);render();window.scrollTo({top:0,behavior:'instant'});document.querySelector('.page-title')?.focus({preventScroll:true});if(!state.seenTour)openModal('tour');else toast('Your profile is saved. Now explore who you’d like to meet.');}break;}
     case'profile-choice':{captureProfileFields();const key=target.dataset.group,value=target.dataset.value;if(target.dataset.multi)modal.draft[key]=modal.draft[key].includes(value)?modal.draft[key].filter(v=>v!==value):[...modal.draft[key],value];else modal.draft[key]=value;delete modal.errors[key];persistDraft();renderModal();break;}
     case'preference-choice':{capturePreferenceFields();const key=target.dataset.group,value=target.dataset.value;if(target.dataset.multi)state.deck.answers[key]=state.deck.answers[key].includes(value)?state.deck.answers[key].filter(v=>v!==value):[...state.deck.answers[key],value];else state.deck.answers[key]=value;save();render();
       if(!target.dataset.multi&&questions[state.deck.step]?.options){clearTimeout(autoAdvanceTimer);const step=state.deck.step;autoAdvanceTimer=setTimeout(()=>{if(state.view==='home'&&!state.session&&state.deck.step===step&&!modal)advanceQuestion(1);},380);}
@@ -161,8 +161,11 @@ async function handleAction(action,target){
     case'report':openModal('report');break;
     case'demo-report':openModal('report-receipt');break;
     case'cancel':if(state.booking)openModal('cancel',{reason:''});break;
-    case'confirm-cancel':if(!modal?.reason||!state.booking)break;if(!applyResult(DateLifecycle.cancel(state,modal.reason),{redraw:false}))break;modal=null;closeModal(false);render();toast('Demo date cancelled. No actual charge.');break;
+    case'confirm-cancel':{if(!modal?.reason||!state.booking)break;const result=DateLifecycle.cancel(state,modal.reason);if(!applyResult(result,{redraw:false}))break;modal=null;closeModal(false);render();toast(result.waived?'Cancelled. Your yearly free late cancellation covered the fee.':'Demo date cancelled. No actual charge.');break;}
     case'share':await shareDate();break;
+    case'tour-close':state.seenTour=true;save();dismissModal();break;
+    case'tour-offer':state.seenTour=true;state.plan='monthly';save();closeModal(false);navigate('membership',true);break;
+    case'unlock-to-plus':closeModal(false);navigate('membership',true);break;
     case'billing':state.plan=target.dataset.value==='annual'?'annual':'monthly';save();render();break;
     case'select-plan':openModal('plan-preview');break;
     case'confirm-plan':if(!applyResult({ok:true,state:{...state,previewPlan:state.plan}},{redraw:false}))break;modal=null;closeModal(false);render();toast('Demo membership active. No payment was taken.');break;

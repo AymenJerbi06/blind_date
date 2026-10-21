@@ -263,6 +263,47 @@ A full walkthrough (welcome, sign-up, setup, deck, review, availability, search,
 
 The walkthrough simulated a signed-in user in the browser (`activateAccount`); no Supabase account was created.
 
+## blinddate+ offer and first-session conversion (October 20, 2026)
+
+**Founder's goal:** convert on the first visit rather than letting people postpone, make Yearly clearly more favourable than Monthly, and add features that help people actually enjoy their date.
+
+**Pricing:** one source of truth in `dist/plans.js`. These are proposed launch prices in CAD before tax; the demo never takes a payment.
+
+| | Free | Monthly | Yearly |
+|---|---|---|---|
+| Price | C$0 | **C$14.99 first month**, then C$29.99 | **C$239.99/year** (≈ C$20/month, 33% off; about C$104 less than a monthly first year) |
+| Date credits / month | 1 to start | 2 | 3 |
+| Ratings & show-up records | C$1.99 each | Included | Included |
+| Introduced first, stretch range | — | Included | Included |
+| Free late cancellation | — | — | 1 every 3 months (fee waived; it still counts on the record) |
+| Partner restaurant perks | — | — | Included |
+| Price locked | — | — | Included |
+| Safety, verification, reporting | Free | Free | Free |
+
+**Why people pay on day one, without manipulative patterns:**
+- **Risk reversal:** the 30-day introduction guarantee ("No introduction in your first 30 days? You get your first payment back.") appears on every offer surface.
+- **A low first step:** the C$14.99 first month.
+- **Contextual moments, each shown where the value is felt:**
+  - a one-time "How it works" tour right after setup, ending in a dismissible offer card ("Start free" is always available);
+  - the locked record row on an introduction ("Every record included with blinddate+ · from C$14.99");
+  - the unlock sheet, which compares C$1.99 for one record with the plan;
+  - the profile banner.
+- **Laws 16–18:** no countdown timers, fake scarcity, pre-checked upsells or hidden renewals. Renewal terms are stated next to every price.
+
+**Yearly is visibly better:** it's preselected with a "Best value · save 33%" badge, shown as a monthly equivalent next to its billed total, and it has four benefits Monthly doesn't.
+
+**New features:**
+- **Conversation sparks** (Dates, before and during a date): three icebreakers built from interests and values you share with your match, with shared topics first. They make the first ten minutes easier and are free for everyone.
+- **Partner restaurant perks:** sample perks on three fictional venues, shown on venue choices and the booking ("Yearly perk: A dessert to share, on the house"). This supports the founder's plan of partnering with Vancouver restaurants.
+- **Yearly late-cancellation waiver:** real logic in `DateLifecycle.cancel` / `Plans.waiverAvailable`. It allows one waiver per 90 days, the record still increments, and it persists across reloads.
+
+**Verified:**
+- `npm run check`, with new assertions: 33% saving, Yearly beats a monthly first year, more credits, intro below list price, waiver once per 90 days and still recorded, Monthly gets no waiver, waiver persists.
+- Playwright walkthrough: 22 screens (including the tour, unlock sheet, both plan selections and plan preview) × 2 sizes × 2 themes. No overflow, no text under 12px, no target under 44px, no JavaScript errors.
+- Contrast: 500 new text elements across 44 scene/theme checks are at least 4.5:1.
+
+**Not real yet:** checkout, refunds and the guarantee, credit accounting, priority queueing, and partner perk redemption. These are product commitments that need a backend and real partner agreements before launch.
+
 ## Still open
 
 Physical iPhone safe areas, real touch drag feel/reachability, keyboard overlap, large/Dynamic Type text, VoiceOver order/announcements, exhaustive image/composited/transient contrast and real user testing. The browser's 90% zoom rounds the small requested height to 668 rather than exactly 667 CSS pixels. Screenshot capture below a supported physical width is unavailable, so screenshots use the supported phone presentation while DOM checks verify the exact CSS widths above.

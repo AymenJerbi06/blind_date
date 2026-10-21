@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import vm from 'node:vm';
 
-const files=['core.js','dating-model.js','trust.js','date-lifecycle.js','local-repository.js','app-state.js'];
+const files=['core.js','dating-model.js','trust.js','plans.js','date-lifecycle.js','local-repository.js','app-state.js'];
 const source=(await Promise.all(files.map(file=>readFile(new URL('./dist/'+file,import.meta.url),'utf8')))).join('\n');
 const context=vm.createContext({assert,structuredClone,console});
 vm.runInContext(source+`
@@ -78,6 +78,20 @@ vm.runInContext(source+`
   assert.equal(DateLifecycle.cancel(cancelled.state,'Plans changed',lateNow).ok,false,'A repeated cancellation does not add a second penalty');
   assert.equal(DateLifecycle.cancel({...AppState.create(),booking},'Safety concern',lateNow).state.record.lateCancels,0);
   assert.equal(DateLifecycle.cancel({...AppState.create(),booking},'Plans changed',booking.timestamp+1).ok,false,'During-date safety tools are separate from late cancellation');
+  // blinddate+ plans: the yearly plan must be the better deal, and its free late cancellation is limited.
+  assert.equal(Plans.savingPercent(),33,'Yearly saves about a third against twelve monthly payments');
+  assert.ok(Plans.annual.price<Plans.firstYearMonthly(),'Yearly beats a monthly first year even with the intro month');
+  assert.ok(Plans.annual.credits>Plans.monthly.credits,'Yearly includes more date credits');
+  assert.ok(Plans.monthly.intro<Plans.monthly.price,'New members get a lower first month');
+  assert.equal(Plans.isMember({previewPlan:'nonsense'}),false);
+  const yearlyState={...AppState.create(),previewPlan:'annual',booking};
+  const waived=DateLifecycle.cancel(yearlyState,'Plans changed',lateNow);
+  assert.equal(waived.fee,0,'Yearly late cancellation fee is waived');assert.equal(waived.waived,true);
+  assert.equal(waived.state.record.lateCancels,1,'A waived cancellation still counts on the record');
+  assert.equal(Plans.waiverAvailable(waived.state,lateNow+86400000),false,'Only one waiver per 90 days');
+  assert.equal(Plans.waiverAvailable(waived.state,lateNow+91*86400000),true,'The waiver returns after 90 days');
+  assert.equal(DateLifecycle.cancel({...AppState.create(),previewPlan:'monthly',booking},'Plans changed',lateNow).fee,20,'Monthly has no waiver');
+  assert.equal(AppState.hydrate({...AppState.create(),waiverUsedAt:lateNow,seenTour:true}).waiverUsedAt,lateNow,'Waiver use survives reload');
   const morning={...booking,timestamp:Dating.timestamp('2026-10-22','09:00')};
   assert.equal(DateLifecycle.recognitionVisible({...AppState.create(),booking:morning},Date.parse('2026-10-22T03:00:00Z')),false,'Within 24 hours is not the same as the date’s local calendar day');
   assert.equal(DateLifecycle.recognitionVisible({...AppState.create(),booking:morning},Date.parse('2026-10-22T07:00:00Z')),true);

@@ -93,7 +93,7 @@ Bill choices depend on the profile's gender: men see **Split the bill** and **Iâ
 
 **Halal** is available in dietary preferences and filters venue choices and date proposals for both people. Olive & Oak is the fictional Halal-tagged venue in this demo; other dietary labels alone never count as Halal verification.
 
-Profile also contains theme, membership previews (C$29.99 monthly / C$299.99 annual, no checkout), safety/report previews and Reset. Notifications are saved local events and navigate to the relevant current flow. Every fresh launch opens home. Reloading an unfinished search returns to planning; restored proposals require fresh final consent.
+Profile also contains theme, blinddate+ plans from `dist/plans.js` (Monthly C$14.99 first month then C$29.99; Yearly C$239.99 â‰ˆ C$20/month with more credits, partner perks, a free late cancellation every 3 months and a locked price; 30-day introduction guarantee; no checkout), safety/report previews and Reset. Notifications are saved local events and navigate to the relevant current flow. Every fresh launch opens home. Reloading an unfinished search returns to planning; restored proposals require fresh final consent.
 
 ## Prototype boundaries
 

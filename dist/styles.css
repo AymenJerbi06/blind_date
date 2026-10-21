@@ -636,3 +636,72 @@ h1[tabindex="-1"]:focus-visible,h2[tabindex="-1"]:focus-visible,.page-title:focu
 .photo-grid>img,.photo-grid>.photo-empty{aspect-ratio:3/4;width:100%;height:auto;border-radius:16px;object-fit:cover}
 .photo-grid>.photo-empty{display:grid;place-items:center;background:var(--panel);color:var(--muted)}
 .photo-grid>.photo-empty .icon{width:22px;height:22px}
+
+/* blinddate+ offer (Oct 20): honest first-month price, clearly better yearly plan. */
+.value-props{display:grid;gap:10px;margin:4px 0 20px}
+.value-props>span{display:grid;grid-template-columns:40px 1fr;column-gap:12px;align-items:center;font-size:13px;color:var(--muted);line-height:1.4}
+.value-props .icon{grid-row:span 2;width:40px;height:40px;padding:9px;border-radius:14px;background:var(--rose-soft);color:var(--accent-dark)}
+.value-props strong{font-size:15px;color:var(--text)}
+.plan-cards{display:grid;gap:12px}
+.plan-card{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:4px;width:100%;text-align:left;padding:18px 18px 16px;border-radius:24px;background:var(--card);box-shadow:inset 0 0 0 1.5px var(--line)}
+.plan-card.selected{box-shadow:inset 0 0 0 2.5px var(--accent);background:var(--card)}
+.plan-card.best{background:linear-gradient(180deg,var(--rose-soft),var(--card) 70%)}
+.plan-badge{font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;background:var(--panel);color:var(--accent-dark);margin-bottom:6px}
+.plan-card.best .plan-badge{background:var(--accent);color:var(--cta-ink)}
+.plan-title{font-size:15px;font-weight:600;color:var(--muted)}
+.plan-price{font-size:34px;font-weight:750;letter-spacing:-1.2px;color:var(--text);font-variant-numeric:tabular-nums;line-height:1.1}
+.plan-price small{font-size:15px;font-weight:500;letter-spacing:0;color:var(--muted);margin-left:3px}
+.plan-detail{font-size:13px;color:var(--muted);line-height:1.45;margin-bottom:6px}
+.plan-card ul{list-style:none;margin:6px 0 0;padding:0;display:grid;gap:7px;font-size:14px;color:var(--text)}
+.plan-card li{display:flex;align-items:center;gap:8px}
+.plan-card li .icon{width:16px;height:16px;color:var(--success-ink)}
+.plan-radio{position:absolute;top:16px;right:16px;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;box-shadow:inset 0 0 0 2px var(--line);color:var(--cta-ink)}
+.plan-card.selected .plan-radio{background:var(--accent);box-shadow:none}
+.plan-radio .icon{width:16px;height:16px}
+.plan-cta{width:100%;margin-top:16px}
+.guarantee-line{display:flex;align-items:flex-start;gap:8px;font-size:13px;line-height:1.5;margin:14px 4px 0;color:var(--success-ink)}
+.guarantee-line .icon{width:18px;height:18px;flex-shrink:0;margin-top:1px}
+.compare-table{background:var(--card);border-radius:22px;padding:6px 12px;font-size:12px}
+.compare-row{display:grid;grid-template-columns:1.6fr repeat(3,1fr);gap:6px;align-items:center;padding:11px 0;border-top:1px solid var(--line-subtle)}
+.compare-row:first-child{border-top:0}
+.compare-row.head span{font-weight:700;color:var(--text);text-align:center}
+.compare-row [role=rowheader]{color:var(--text);font-weight:500;line-height:1.35}
+.compare-row [role=cell]{text-align:center;color:var(--muted);line-height:1.35}
+.compare-row [role=cell].yearly{color:var(--accent-dark);font-weight:650}
+.faq details{padding:0 16px;border-top:1px solid var(--line-subtle)}
+.faq details:first-child{border-top:0}
+.faq summary{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:54px;font-size:15px;font-weight:600;cursor:pointer;list-style:none}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary .icon{width:18px;height:18px;color:var(--muted);flex-shrink:0}
+.faq details[open] summary .icon{rotate:180deg}
+.faq details p{font-size:14px;line-height:1.55;padding:0 0 16px}
+.member-status{margin-bottom:18px}
+.member-status p{font-size:14px;margin:8px 0 14px}
+.member-status .button{width:100%}
+
+/* Welcome tour + offer card, shown once after setup. */
+.tour-steps{list-style:none;margin:0 0 18px;padding:0;display:grid;gap:14px}
+.tour-steps li{display:flex;gap:12px;align-items:flex-start}
+.tour-num{display:grid;place-items:center;width:40px;height:40px;flex-shrink:0;border-radius:14px;background:var(--lilac);color:var(--lilac-ink)}
+.tour-num .icon{width:20px;height:20px}
+.tour-steps strong{display:block;font-size:15px}
+.tour-steps li>span:last-child>span{display:block;font-size:13px;color:var(--muted);margin-top:2px}
+.offer-card{border-radius:22px;padding:18px;background:var(--plum-card);color:var(--plum-ink)}
+.offer-badge{display:inline-block;font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;background:var(--plum-ink);color:var(--plum-card);margin-bottom:10px}
+.offer-card h3{font-family:Georgia,"Times New Roman",serif;font-size:22px;font-weight:700;color:var(--plum-ink)}
+.offer-card p{font-size:13px;color:var(--plum-muted);margin-top:8px;line-height:1.5}
+.offer-guarantee{display:flex;gap:7px;align-items:flex-start}
+.offer-guarantee .icon{width:16px;height:16px;flex-shrink:0;margin-top:2px}
+.upsell-note{display:flex;gap:10px;align-items:flex-start;margin-top:16px;padding:14px;border-radius:18px;background:var(--rose-soft);font-size:13px;line-height:1.5}
+.upsell-note .icon{width:20px;height:20px;color:var(--accent-dark);flex-shrink:0}
+
+/* Partner perks and conversation sparks. */
+.venue-perk{display:inline-flex;align-items:center;gap:5px;margin-top:6px;font-size:12px;font-weight:600;color:var(--date-ink)}
+.venue-perk .icon{width:14px;height:14px}
+.sparks{padding:4px 0}
+.spark-row{display:flex;align-items:center;gap:12px;padding:14px 16px}
+.spark-row+.spark-row{border-top:1px solid var(--line-subtle)}
+.spark-row>div{display:flex;flex-direction:column;gap:3px;min-width:0}
+.spark-row span:not(.row-icon){font-size:12px;color:var(--muted)}
+.spark-row strong{font-family:Georgia,"Times New Roman",serif;font-weight:400;font-size:17px;line-height:1.35}
+@media(max-width:389px){.compare-row{grid-template-columns:1.4fr repeat(3,1fr);gap:4px}.plan-price{font-size:30px}}

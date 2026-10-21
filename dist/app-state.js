@@ -18,6 +18,7 @@ const AppState = (() => {
       inbox: [], plan: 'monthly', previewPlan: null, unlocks: [], pastDates: [],
       record: {dates: 0, noShows: 0, lateCancels: 0}, reliabilityOverrides: {},
       trusted: {name: '', contact: ''}, dateClock: 'auto', feedback: null,
+      seenTour: false, waiverUsedAt: 0,
     };
   }
 
@@ -120,6 +121,7 @@ const AppState = (() => {
         trusted: {name: String(raw.trusted?.name || '').slice(0, 40), contact: String(raw.trusted?.contact || '').slice(0, 20)},
         dateClock: ['auto', 'upcoming', 'during', 'after'].includes(raw.dateClock) ? raw.dateClock : 'auto',
         feedback: DateLifecycle.normalizeFeedback(raw.feedback, booking),
+        seenTour: raw.seenTour === true, waiverUsedAt: validTime(raw.waiverUsedAt) ? raw.waiverUsedAt : 0,
       };
     } catch {
       return base;

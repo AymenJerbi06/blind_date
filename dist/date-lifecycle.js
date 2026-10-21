@@ -127,8 +127,9 @@ const DateLifecycle = (() => {
 
   function cancel(state, reason, now = Date.now()) {
     if (!state.booking || !cancellationReasons.includes(reason) || phase(state.booking, 'auto', now) !== 'upcoming') return failure('This date cannot be cancelled now. Safety tools remain available.');
-    const fee = Dating.cancellationFee(state.booking, reason, now);
-    return success({...state, record: {...record(state.record), lateCancels: count(state.record.lateCancels) + (fee > 0 ? 1 : 0)}, booking: null, feedback: null, session: null, drafts: {...state.drafts, proposal: null}, dateClock: 'auto'}, {fee});
+    const due = Dating.cancellationFee(state.booking, reason, now), waived = due > 0 && Plans.waiverAvailable(state, now), fee = waived ? 0 : due;
+    // A waived fee still counts as a late cancellation: the other person was still let down.
+    return success({...state, waiverUsedAt: waived ? now : state.waiverUsedAt || 0, record: {...record(state.record), lateCancels: count(state.record.lateCancels) + (due > 0 ? 1 : 0)}, booking: null, feedback: null, session: null, drafts: {...state.drafts, proposal: null}, dateClock: 'auto'}, {fee, waived});
   }
 
   function introductionKey(session) {
